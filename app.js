@@ -11,10 +11,11 @@ const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov'
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classLifst.remove('active'))
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.querySelectorAll('.nav-btn').forEach(b => b && b.classList && b.classList.remove('active'))
+    document.querySelectorAll('.tab').forEach(t => t && t.classList && t.classList.remove('active'))
     btn.classList.add('active')
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active')
+    const tab = document.getElementById('tab-' + btn.dataset.tab)
+    if (tab) tab.classList.add('active')
     if (btn.dataset.tab === 'movimientos') renderMovs()
     if (btn.dataset.tab === 'diccionario') renderDic()
     if (btn.dataset.tab === 'presupuestos') renderPres()
