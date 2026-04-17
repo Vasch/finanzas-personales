@@ -395,10 +395,15 @@ window.guardarMov = async (id) => {
   const addDic = document.getElementById('m-add-dic').checked
   const codigo = document.getElementById('m-codigo').value.trim()
 
-  await sb.from('movimientos').update({ categoria: cat, tipo }).eq('id', id)
+  const { data, error } = await sb.from('movimientos').update({ categoria: cat, tipo }).eq('id', Number(id)).select()
+  console.log('Update result:', { data, error })
+  
+  if (error) { alert('Error al guardar: ' + error.message); return }
+  if (!data || data.length === 0) { alert('No se actualizó ningún registro. ID: ' + id); return }
 
   if (addDic && codigo) {
-    await sb.from('diccionario').upsert({ codigo, significado: codigo, categoria: cat, tipo }, { onConflict: 'codigo' })
+    const { error: dicErr } = await sb.from('diccionario').upsert({ codigo, significado: codigo, categoria: cat, tipo }, { onConflict: 'codigo' })
+    if (dicErr) console.error('Error diccionario:', dicErr)
   }
 
   closeModal()
