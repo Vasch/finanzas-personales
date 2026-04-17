@@ -181,7 +181,8 @@ const aInsertar = []
       }
       if (state.movs.some(x => x.hash === h)) { duplicados++; continue }
       hashesEnArchivo.add(h)
-      const { categoria, tipo } = clasificar(m.descripcion, state.dic, m.abono)      const mesNum = m.fecha.slice(5,7)
+      const { categoria, tipo } = clasificar(m.descripcion, state.dic, m.abono)      
+      const mesNum = m.fecha.slice(5,7)
       const mes = MESES[parseInt(mesNum)-1]
       aInsertar.push({ ...m, hash: h, categoria, tipo, mes })
     }
