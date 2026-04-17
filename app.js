@@ -69,24 +69,35 @@ function detectarFormato(rows) {
 function parsearDebito(rows) {
   const movs = []
   let headerIdx = -1
+  let colFecha = -1, colDesc = -1, colCargo = -1, colAbono = -1
+  
   for (let i = 0; i < rows.length; i++) {
-    const row = rows[i].map(c => String(c || '').toUpperCase())
-    if (row.some(c => c.includes('FECHA')) && row.some(c => c.includes('DESCRIPCI')) && row.some(c => c.includes('CARGO'))) {
+    const row = rows[i].map(c => String(c || '').toUpperCase().trim())
+    const fechaIdx = row.findIndex(c => c === 'FECHA')
+    const descIdx = row.findIndex(c => c.includes('DESCRIPCI'))
+    const cargoIdx = row.findIndex(c => c.includes('CARGO'))
+    const abonoIdx = row.findIndex(c => c.includes('ABONO'))
+    if (fechaIdx >= 0 && descIdx >= 0 && cargoIdx >= 0) {
       headerIdx = i
+      colFecha = fechaIdx
+      colDesc = descIdx
+      colCargo = cargoIdx
+      colAbono = abonoIdx >= 0 ? abonoIdx : cargoIdx + 1
       break
     }
   }
   if (headerIdx === -1) return []
+  console.log('Header encontrado en fila:', headerIdx, 'Columnas:', {colFecha, colDesc, colCargo, colAbono})
 
   for (let i = headerIdx + 1; i < rows.length; i++) {
     const row = rows[i]
-    if (!row || row.length < 4) continue
-    const fechaRaw = String(row[1] || row[0] || '').trim()
+    if (!row || row.length === 0) continue
+    const fechaRaw = String(row[colFecha] || '').trim()
     if (!/^\d{1,2}\/\d{1,2}/.test(fechaRaw)) continue
-    const desc = String(row[2] || '').trim()
+    const desc = String(row[colDesc] || '').trim()
     if (!desc || desc.toUpperCase().includes('SALDO INICIAL') || desc.toUpperCase().includes('SALDO FINAL')) continue
-    const cargo = parseFloat(String(row[4] || '0').replace(/[^\d.-]/g,'')) || 0
-    const abono = parseFloat(String(row[5] || '0').replace(/[^\d.-]/g,'')) || 0
+    const cargo = parseFloat(String(row[colCargo] || '0').replace(/[^\d.-]/g,'')) || 0
+    const abono = parseFloat(String(row[colAbono] || '0').replace(/[^\d.-]/g,'')) || 0
     if (cargo === 0 && abono === 0) continue
     const fecha = parseFechaChile(fechaRaw)
     if (!fecha) continue
