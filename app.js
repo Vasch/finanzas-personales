@@ -142,10 +142,6 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
     console.log('Hojas encontradas:', wb.SheetNames)
     console.log('Primeras 30 filas:', rows.slice(0, 30))
     console.log('Total filas:', rows.length)
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
-    console.log('Hojas encontradas:', wb.SheetNames)
-    console.log('Primeras 30 filas:', rows.slice(0, 30))
-    console.log('Total filas:', rows.length)
 
     const formato = detectarFormato(rows)
     if (!formato) {
