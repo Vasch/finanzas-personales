@@ -592,4 +592,5 @@ function renderChartIngresos(movs) {
     }
   })
 }
+
 cargarDatos().then(renderInicio)
