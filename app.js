@@ -36,13 +36,14 @@ function parseFechaChile(fecha) {
   return `${anio}-${mes}-${dia}`
 }
 
-function clasificar(desc, dic) {
+function clasificar(desc, dic, abono) {
   const descUp = desc.toUpperCase()
   for (const d of dic) {
     if (descUp.includes(d.codigo.toUpperCase())) {
       return { categoria: d.categoria, tipo: d.tipo }
     }
   }
+  if (abono > 0) return { categoria: 'Ingreso sin clasificar', tipo: 'Ingreso' }
   return { categoria: 'Sin clasificar', tipo: 'Sin clasificar' }
 }
 
@@ -180,8 +181,7 @@ const aInsertar = []
       }
       if (state.movs.some(x => x.hash === h)) { duplicados++; continue }
       hashesEnArchivo.add(h)
-      const { categoria, tipo } = clasificar(m.descripcion, state.dic)
-      const mesNum = m.fecha.slice(5,7)
+      const { categoria, tipo } = clasificar(m.descripcion, state.dic, m.abono)      const mesNum = m.fecha.slice(5,7)
       const mes = MESES[parseInt(mesNum)-1]
       aInsertar.push({ ...m, hash: h, categoria, tipo, mes })
     }
