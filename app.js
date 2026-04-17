@@ -157,11 +157,18 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
 
     await cargarDatos()
 
-    const aInsertar = []
+const aInsertar = []
+    const hashesEnArchivo = new Set()
     let duplicados = 0
     for (const m of parsed) {
-      const h = hashMov(m)
+      let h = hashMov(m)
+      let contador = 1
+      while (hashesEnArchivo.has(h)) {
+        contador++
+        h = hashMov(m) + '_' + contador
+      }
       if (state.movs.some(x => x.hash === h)) { duplicados++; continue }
+      hashesEnArchivo.add(h)
       const { categoria, tipo } = clasificar(m.descripcion, state.dic)
       const mesNum = m.fecha.slice(5,7)
       const mes = MESES[parseInt(mesNum)-1]
@@ -169,8 +176,18 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
     }
 
     if (aInsertar.length > 0) {
-      const { error } = await sb.from('movimientos').insert(aInsertar)
-      if (error) throw error
+      let insertados = 0
+      for (const m of aInsertar) {
+        const { error } = await sb.from('movimientos').insert(m)
+        if (error && error.code === '23505') {
+          duplicados++
+        } else if (error) {
+          throw error
+        } else {
+          insertados++
+        }
+      }
+      console.log(`Insertados: ${insertados}, Duplicados: ${duplicados}`)
     }
 
     await sb.from('archivos_subidos').insert({
