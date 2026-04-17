@@ -233,6 +233,7 @@ function renderInicio() {
 
   renderChartMensual(movs)
   renderChartCategoria(movs)
+  renderChartIngresos(movs)
 }
 
 function renderChartMensual(movs) {
@@ -560,4 +561,35 @@ document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target.id === 'modal-bg') closeModal()
 })
 
+function renderChartIngresos(movs) {
+  const byCat = {}
+  movs.forEach(m => {
+    if (m.abono > 0) {
+      byCat[m.categoria] = (byCat[m.categoria] || 0) + m.abono
+    }
+  })
+  const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1])
+  const colors = ['#6ee7a8','#7dd3fc','#a78bfa','#fbbf60','#f0997b','#5dcaa5','#97c459']
+
+  if (state.charts.ing) state.charts.ing.destroy()
+  state.charts.ing = new Chart(document.getElementById('chart-ing'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(e => e[0]),
+      datasets: [{ label: 'Ingreso', data: sorted.map(e => e[1]), backgroundColor: colors }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmt(ctx.raw) } }
+      },
+      scales: {
+        x: { ticks: { color: '#a69fbf', callback: v => v >= 1000000 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1000 ? '$'+(v/1000).toFixed(0)+'K' : '$'+v }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#a69fbf', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  })
+}
 cargarDatos().then(renderInicio)
