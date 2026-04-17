@@ -139,6 +139,13 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
     const wb = XLSX.read(buf, { type: 'array', cellDates: false })
     const sheet = wb.Sheets[wb.SheetNames[0]]
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+    console.log('Hojas encontradas:', wb.SheetNames)
+    console.log('Primeras 30 filas:', rows.slice(0, 30))
+    console.log('Total filas:', rows.length)
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+    console.log('Hojas encontradas:', wb.SheetNames)
+    console.log('Primeras 30 filas:', rows.slice(0, 30))
+    console.log('Total filas:', rows.length)
 
     const formato = detectarFormato(rows)
     if (!formato) {
