@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finanzas personales</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" id="styles-link">
+  <script>
+    document.getElementById('styles-link').href = 'styles.css?v=' + Date.now()
+  </script>
 </head>
 <body>
   <header>
@@ -86,6 +89,12 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    const v = Date.now()
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.src = 'app.js?v=' + v
+    document.body.appendChild(script)
+  </script>
 </body>
 </html>
