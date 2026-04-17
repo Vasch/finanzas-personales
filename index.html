@@ -11,7 +11,7 @@
 </head>
 <body>
   <header>
-    <h1>Finanzas</h1>
+    <h1>Finanzas Personales</h1>
     <nav id="nav">
       <button class="nav-btn active" data-tab="inicio">Inicio</button>
       <button class="nav-btn" data-tab="movimientos">Movimientos</button>
@@ -29,21 +29,34 @@
         <div id="upload-status"></div>
       </div>
 
+      <div class="card">
+        <h2>Período</h2>
+        <div class="filters">
+          <select id="f-mes-inicio"><option value="">Todos los meses</option></select>
+        </div>
+      </div>
+
       <div class="metrics" id="metrics-inicio"></div>
 
       <div class="card">
-        <h2>Gasto mensual</h2>
+        <h2>Ingresos vs Egresos mensual</h2>
         <div class="chart-wrap"><canvas id="chart-mensual"></canvas></div>
       </div>
 
       <div class="card">
-        <h2>Por categoría</h2>
+        <h2>Egresos por categoría</h2>
         <div class="chart-wrap"><canvas id="chart-cat"></canvas></div>
       </div>
 
       <div class="card">
         <h2>Ingresos por fuente</h2>
         <div class="chart-wrap"><canvas id="chart-ing"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h2>Movimientos internos</h2>
+        <p class="hint">Traspasos entre tus cuentas propias, no cuentan como gasto ni ingreso real</p>
+        <div class="chart-wrap"><canvas id="chart-interno"></canvas></div>
       </div>
     </section>
 
