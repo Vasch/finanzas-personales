@@ -273,6 +273,8 @@ function renderInicio() {
   renderChartCategoria(movs)
   renderChartIngresos(movs)
   renderChartInterno(movs)
+  renderChartTipo(movs)
+  renderTopMovs(movs)
 }
 
 function renderChartMensual(movs) {
@@ -671,5 +673,71 @@ function showModal(html) {
 window.closeModal = () => { document.getElementById('modal-bg').classList.remove('show') }
 
 document.getElementById('modal-bg').addEventListener('click', e => { if (e.target.id === 'modal-bg') closeModal() })
+
+function renderChartTipo(movs) {
+  const porTipo = { Necesario: 0, Prescindible: 0, 'Sin clasificar': 0 }
+  movs.forEach(m => {
+    if (m.cargo > 0 && m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.tipo !== 'Excluir') {
+      if (m.tipo === 'Necesario') porTipo.Necesario += m.cargo
+      else if (m.tipo === 'Prescindible') porTipo.Prescindible += m.cargo
+      else porTipo['Sin clasificar'] += m.cargo
+    }
+  })
+  const total = Object.values(porTipo).reduce((a,b) => a+b, 0)
+  const labels = Object.keys(porTipo).map(k => {
+    const pct = total > 0 ? ((porTipo[k]/total)*100).toFixed(1) : 0
+    return `${k} (${pct}%)`
+  })
+  
+  if (state.charts.tipo) state.charts.tipo.destroy()
+  state.charts.tipo = new Chart(document.getElementById('chart-tipo'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: Object.values(porTipo),
+        backgroundColor: ['#6ee7a8','#fbbf60','#f87171'],
+        borderColor: '#241f35',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#e8e4f0', font: { size: 12 }, padding: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label.split(' (')[0]}: ${fmt(ctx.raw)}` } }
+      }
+    }
+  })
+}
+
+function renderTopMovs(movs) {
+  const egresos = movs
+    .filter(m => m.cargo > 0 && m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.tipo !== 'Excluir')
+    .sort((a,b) => b.cargo - a.cargo)
+    .slice(0, 10)
+  
+  const ingresos = movs
+    .filter(m => m.tipo === 'Ingreso')
+    .map(m => ({ ...m, total: (m.abono || 0) + (m.cargo || 0) }))
+    .sort((a,b) => b.total - a.total)
+    .slice(0, 10)
+
+  const renderTop = (arr, montoKey) => {
+    if (arr.length === 0) return '<div class="empty">Sin datos</div>'
+    return arr.map(m => {
+      const fecha = m.fecha.slice(8,10) + '/' + m.fecha.slice(5,7)
+      const monto = montoKey === 'total' ? m.total : m.cargo
+      return `<div class="mov-row" style="grid-template-columns: 50px 1fr auto">
+        <span class="mov-fecha">${fecha}</span>
+        <div><div class="mov-desc">${m.descripcion}</div><div class="mov-cat">${m.categoria}</div></div>
+        <span class="mov-monto cargo">${fmt(monto)}</span>
+      </div>`
+    }).join('')
+  }
+
+  document.getElementById('top-egresos').innerHTML = renderTop(egresos, 'cargo')
+  document.getElementById('top-ingresos').innerHTML = renderTop(ingresos, 'total')
+}
 
 cargarDatos().then(renderInicio)
