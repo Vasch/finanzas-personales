@@ -274,18 +274,6 @@ function renderInicio() {
 
   const tip = (texto) => `<span class="info-tooltip">?<span class="tip-content">${texto}</span></span>`
 
-const tasaFlujo = ingresos > 0 ? ((ingresos - egresos) / ingresos * 100) : 0
-  const salidasInternas = movs.filter(m => m.tipo === 'Movimiento interno' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
-  const tasaPatrimonio = ingresos > 0 ? (((ingresos - egresos) + salidasInternas) / ingresos * 100) : 0
-  const prescindible = movs.filter(m => m.tipo === 'Prescindible' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
-  const ratioPrescindible = ingresos > 0 ? (prescindible / ingresos * 100) : 0
-  
-  const clsFlujo = tasaFlujo >= 20 ? 'pos' : tasaFlujo >= 10 ? 'warn' : 'bad'
-  const clsPatri = tasaPatrimonio >= 30 ? 'pos' : tasaPatrimonio >= 15 ? 'warn' : 'bad'
-  const clsPres = ratioPrescindible <= 15 ? 'pos' : ratioPrescindible <= 25 ? 'warn' : 'bad'
-
-  const tip = (texto) => `<span class="info-tooltip">?<span class="tip-content">${texto}</span></span>`
-
   document.getElementById('metrics-inicio').innerHTML = `
     <div class="metric"><div class="metric-label">Ingresos totales</div><div class="metric-value abono">${fmt(ingresos)}</div></div>
     <div class="metric"><div class="metric-label">Egresos totales</div><div class="metric-value cargo">${fmt(egresos)}</div></div>
