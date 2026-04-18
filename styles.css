@@ -188,6 +188,7 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1
 .badge.pres { background: rgba(251,191,96,0.15); color: var(--warning); }
 .badge.ing { background: rgba(125,211,252,0.15); color: var(--info); }
 .badge.unc { background: rgba(248,113,113,0.15); color: var(--danger); }
+.badge.excl { background: rgba(109,102,136,0.25); color: var(--text-muted); }
 
 .dic-row, .pres-row {
   display: grid;
