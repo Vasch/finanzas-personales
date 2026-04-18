@@ -396,7 +396,7 @@ function aplicarFiltros() {
   container.innerHTML = filtered.map(m => {
     const monto = m.cargo > 0 ? `-${fmt(m.cargo)}` : `+${fmt(m.abono)}`
     const cls = m.cargo > 0 ? 'cargo' : 'abono'
-    const badgeCls = m.tipo === 'Necesario' ? 'nec' : m.tipo === 'Prescindible' ? 'pres' : m.tipo === 'Ingreso' ? 'ing' : m.tipo === 'Movimiento interno' ? 'ing' : 'unc'
+    const badgeCls = m.tipo === 'Necesario' ? 'nec' : m.tipo === 'Prescindible' ? 'pres' : m.tipo === 'Ingreso' ? 'ing' : m.tipo === 'Movimiento interno' ? 'ing' : m.tipo === 'Excluir' ? 'excl' : 'unc'
     const fechaFmt = m.fecha.slice(8,10) + '/' + m.fecha.slice(5,7)
     return `<div class="mov-row" onclick="editarMov(${m.id})">
       <span class="mov-fecha">${fechaFmt}</span>
