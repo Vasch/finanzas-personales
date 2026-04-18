@@ -242,3 +242,22 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1
   .dic-row { grid-template-columns: 1fr auto; }
   .dic-row > *:not(:first-child):not(:last-child) { display: none; }
 }
+
+.top-lista {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.top-lista .mov-row {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.top-lista .mov-fecha { font-size: 10px; }
+.top-lista .mov-cat { font-size: 10px; }
+
+.top-lista::-webkit-scrollbar { width: 6px; }
+.top-lista::-webkit-scrollbar-track { background: transparent; }
+.top-lista::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.top-lista::-webkit-scrollbar-thumb:hover { background: var(--accent); }
