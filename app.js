@@ -833,4 +833,42 @@ function renderTopMovs(movs) {
   document.getElementById('top-ingresos').innerHTML = '<div class="top-lista">' + renderTop(ingresos, 'total') + '</div>'
 }
 
-cargarDatos().then(renderInicio)
+// Lógica de autenticación
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession()
+  if (session) {
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('app-content').style.display = 'block'
+    await cargarDatos()
+    renderInicio()
+  } else {
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('app-content').style.display = 'none'
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim()
+  const password = document.getElementById('login-password').value
+  const errorEl = document.getElementById('login-error')
+  errorEl.textContent = ''
+  
+  if (!email || !password) {
+    errorEl.textContent = 'Completa email y contraseña'
+    return
+  }
+  
+  const { error } = await sb.auth.signInWithPassword({ email, password })
+  if (error) {
+    errorEl.textContent = 'Email o contraseña incorrectos'
+    return
+  }
+  
+  await checkAuth()
+})
+
+document.getElementById('login-password').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click()
+})
+
+checkAuth()
