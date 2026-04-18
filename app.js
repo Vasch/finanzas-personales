@@ -393,17 +393,45 @@ function renderChartIngresos(movs) {
 function renderChartInterno(movs) {
   const byCat = {}
   movs.forEach(m => {
-    if (m.tipo === 'Movimiento interno') byCat[m.categoria] = (byCat[m.categoria] || 0) + (m.cargo || 0) + (m.abono || 0)
+    if (m.tipo === 'Movimiento interno') {
+      if (!byCat[m.categoria]) byCat[m.categoria] = 0
+      byCat[m.categoria] += (m.abono || 0) - (m.cargo || 0)
+    }
   })
-  const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1])
+  const sorted = Object.entries(byCat).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1]))
+  const colors = sorted.map(e => e[1] >= 0 ? '#6ee7a8' : '#f87171')
+  
   if (state.charts.interno) state.charts.interno.destroy()
   state.charts.interno = new Chart(document.getElementById('chart-interno'), {
     type: 'bar',
-    data: { labels: sorted.map(e => e[0]), datasets: [{ label: 'Movimiento', data: sorted.map(e => e[1]), backgroundColor: '#a78bfa' }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.raw) } } },
+    data: { 
+      labels: sorted.map(e => e[0]), 
+      datasets: [{ label: 'Neto', data: sorted.map(e => e[1]), backgroundColor: colors }] 
+    },
+    options: { 
+      indexAxis: 'y', 
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: { 
+        legend: { display: false }, 
+        tooltip: { 
+          callbacks: { 
+            label: ctx => (ctx.raw >= 0 ? '+' : '') + fmt(ctx.raw)
+          } 
+        } 
+      },
       scales: {
-        x: { ticks: { color: '#a69fbf', callback: v => v >= 1000000 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1000 ? '$'+(v/1000).toFixed(0)+'K' : '$'+v }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { 
+          ticks: { 
+            color: '#a69fbf', 
+            callback: v => {
+              const abs = Math.abs(v)
+              const signo = v < 0 ? '-' : ''
+              return signo + (abs >= 1000000 ? '$'+(abs/1e6).toFixed(1)+'M' : abs >= 1000 ? '$'+(abs/1000).toFixed(0)+'K' : '$'+abs)
+            }
+          }, 
+          grid: { color: 'rgba(255,255,255,0.05)' } 
+        },
         y: { ticks: { color: '#a69fbf', font: { size: 11 } }, grid: { display: false } }
       }
     }
