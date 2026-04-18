@@ -257,7 +257,7 @@ function renderInicio() {
   renderSelectorMes()
   const movs = movsFiltradosPorMes()
   const ingresos = movs.filter(m => m.tipo === 'Ingreso').reduce((s,m) => s + (m.abono || 0) + (m.cargo || 0), 0)
-  const egresos = movs.filter(m => m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
+  const egresos = movs.filter(m => m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.tipo !== 'Excluir' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
   const interno = movs.filter(m => m.tipo === 'Movimiento interno').reduce((s,m) => s + (m.cargo || 0) + (m.abono || 0), 0)
   const neto = ingresos - egresos
   const sinClasificar = movs.filter(m => m.categoria === 'Sin clasificar').length
@@ -278,7 +278,7 @@ function renderInicio() {
 function renderChartMensual(movs) {
   const byMes = {}
   movs.forEach(m => {
-    if (m.tipo === 'Movimiento interno') return
+    if (m.tipo === 'Movimiento interno' || m.tipo === 'Excluir') return
     const key = m.fecha.slice(0,7)
     if (!byMes[key]) byMes[key] = { ingresos: 0, egresos: 0 }
     if (m.tipo === 'Ingreso') byMes[key].ingresos += (m.abono || 0) + (m.cargo || 0)
@@ -307,7 +307,7 @@ function renderChartMensual(movs) {
 function renderChartCategoria(movs) {
   const byCat = {}
   movs.forEach(m => {
-    if (m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.cargo > 0) {
+    if (m.tipo !== 'Ingreso' && m.tipo !== 'Movimiento interno' && m.tipo !== 'Excluir' && m.cargo > 0) {
       byCat[m.categoria] = (byCat[m.categoria] || 0) + m.cargo
     }
   })
@@ -430,6 +430,7 @@ window.editarMov = (id) => {
       <option value="Prescindible" ${m.tipo==='Prescindible'?'selected':''}>Prescindible</option>
       <option value="Ingreso" ${m.tipo==='Ingreso'?'selected':''}>Ingreso</option>
       <option value="Movimiento interno" ${m.tipo==='Movimiento interno'?'selected':''}>Movimiento interno</option>
+      <option value="Excluir" ${m.tipo==='Excluir'?'selected':''}>Excluir</option>
       <option value="Sin clasificar" ${m.tipo==='Sin clasificar'?'selected':''}>Sin clasificar</option>
     </select>
     <label><input type="checkbox" id="m-add-dic" checked /> Guardar en diccionario</label>
@@ -568,6 +569,7 @@ window.editarDic = (id) => {
       <option value="Prescindible" ${d.tipo==='Prescindible'?'selected':''}>Prescindible</option>
       <option value="Ingreso" ${d.tipo==='Ingreso'?'selected':''}>Ingreso</option>
       <option value="Movimiento interno" ${d.tipo==='Movimiento interno'?'selected':''}>Movimiento interno</option>
+      <option value="Excluir" ${d.tipo==='Excluir'?'selected':''}>Excluir</option>
     </select>
     <div class="modal-actions">
       <button class="btn-small" onclick="closeModal()">Cancelar</button>
