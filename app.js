@@ -4,7 +4,7 @@ const SUPABASE_URL = 'https://wdwlacdxlvrlthognfzn.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_3j__spC7dmwoMYibLZPXPQ_eTm-nC-6'
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-const state = { movs: [], dic: [], pres: [], charts: {}, mesSeleccionado: '' }
+const state = { movs: [], dic: [], pres: [], charts: {}, mesSeleccionado: '', userId: null }
 
 const fmt = n => '$' + Math.round(n).toLocaleString('es-CL')
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
@@ -215,7 +215,7 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
       const { categoria, tipo } = clasificar(m.descripcion, state.dic, m.abono)
       const mesNum = m.fecha.slice(5,7)
       const mes = MESES[parseInt(mesNum)-1]
-      aInsertar.push({ ...m, hash: h, categoria, tipo, mes })
+      aInsertar.push({ ...m, hash: h, categoria, tipo, mes, user_id: state.userId })
     }
     if (aInsertar.length > 0) {
       let insertados = 0
@@ -226,8 +226,8 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
         else insertados++
       }
     }
-    await sb.from('archivos_subidos').insert({
-      nombre: file.name, movimientos_agregados: aInsertar.length, movimientos_duplicados: duplicados
+      await sb.from('archivos_subidos').insert({
+      nombre: file.name, movimientos_agregados: aInsertar.length, movimientos_duplicados: duplicados, user_id: state.userId
     })
     statusEl.innerHTML = `<div class="status-msg ok">✓ ${aInsertar.length} movimientos agregados. ${duplicados > 0 ? duplicados + ' duplicados ignorados.' : ''}</div>`
     await cargarDatos()
@@ -555,7 +555,7 @@ window.guardarMov = async (id) => {
   if (error) { alert('Error: ' + error.message); return }
 
   if (addDic && codigo) {
-    await sb.from('diccionario').upsert({ codigo, significado: codigo, categoria: cat, tipo }, { onConflict: 'codigo' })
+await sb.from('diccionario').upsert({ codigo, significado: codigo, categoria: cat, tipo, user_id: state.userId }, { onConflict: 'codigo,user_id' })
     closeModal()
     mostrarModalAplicar(codigo, cat, tipo)
   } else {
@@ -741,7 +741,8 @@ window.guardarPres = async (id) => {
   const data = {
     categoria: document.getElementById('p-cat-select').value,
     limite_mensual: parseInt(document.getElementById('p-limite').value),
-    alerta_porcentaje: parseInt(document.getElementById('p-alerta').value)
+    alerta_porcentaje: parseInt(document.getElementById('p-alerta').value),
+    user_id: state.userId
   }
   if (!data.categoria || !data.limite_mensual) { alert('Campos obligatorios'); return }
   if (id) await sb.from('presupuestos').update(data).eq('id', id)
@@ -833,15 +834,16 @@ function renderTopMovs(movs) {
   document.getElementById('top-ingresos').innerHTML = '<div class="top-lista">' + renderTop(ingresos, 'total') + '</div>'
 }
 
-// Lógica de autenticación
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession()
   if (session) {
+    state.userId = session.user.id
     document.getElementById('login-screen').style.display = 'none'
     document.getElementById('app-content').style.display = 'block'
     await cargarDatos()
     renderInicio()
   } else {
+    state.userId = null
     document.getElementById('login-screen').style.display = 'flex'
     document.getElementById('app-content').style.display = 'none'
   }
