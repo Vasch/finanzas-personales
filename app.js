@@ -262,13 +262,50 @@ function renderInicio() {
   const neto = ingresos - egresos
   const sinClasificar = movs.filter(m => m.categoria === 'Sin clasificar').length
 
+  const tasaFlujo = ingresos > 0 ? ((ingresos - egresos) / ingresos * 100) : 0
+  const salidasInternas = movs.filter(m => m.tipo === 'Movimiento interno' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
+  const tasaPatrimonio = ingresos > 0 ? (((ingresos - egresos) + salidasInternas) / ingresos * 100) : 0
+  const prescindible = movs.filter(m => m.tipo === 'Prescindible' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
+  const ratioPrescindible = ingresos > 0 ? (prescindible / ingresos * 100) : 0
+  
+  const clsFlujo = tasaFlujo >= 20 ? 'pos' : tasaFlujo >= 10 ? 'warn' : 'bad'
+  const clsPatri = tasaPatrimonio >= 30 ? 'pos' : tasaPatrimonio >= 15 ? 'warn' : 'bad'
+  const clsPres = ratioPrescindible <= 15 ? 'pos' : ratioPrescindible <= 25 ? 'warn' : 'bad'
+
+  const tip = (texto) => `<span class="info-tooltip">?<span class="tip-content">${texto}</span></span>`
+
+const tasaFlujo = ingresos > 0 ? ((ingresos - egresos) / ingresos * 100) : 0
+  const salidasInternas = movs.filter(m => m.tipo === 'Movimiento interno' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
+  const tasaPatrimonio = ingresos > 0 ? (((ingresos - egresos) + salidasInternas) / ingresos * 100) : 0
+  const prescindible = movs.filter(m => m.tipo === 'Prescindible' && m.cargo > 0).reduce((s,m) => s + m.cargo, 0)
+  const ratioPrescindible = ingresos > 0 ? (prescindible / ingresos * 100) : 0
+  
+  const clsFlujo = tasaFlujo >= 20 ? 'pos' : tasaFlujo >= 10 ? 'warn' : 'bad'
+  const clsPatri = tasaPatrimonio >= 30 ? 'pos' : tasaPatrimonio >= 15 ? 'warn' : 'bad'
+  const clsPres = ratioPrescindible <= 15 ? 'pos' : ratioPrescindible <= 25 ? 'warn' : 'bad'
+
+  const tip = (texto) => `<span class="info-tooltip">?<span class="tip-content">${texto}</span></span>`
+
   document.getElementById('metrics-inicio').innerHTML = `
     <div class="metric"><div class="metric-label">Ingresos totales</div><div class="metric-value abono">${fmt(ingresos)}</div></div>
     <div class="metric"><div class="metric-label">Egresos totales</div><div class="metric-value cargo">${fmt(egresos)}</div></div>
     <div class="metric"><div class="metric-label">Neto</div><div class="metric-value neutral">${fmt(neto)}</div></div>
     <div class="metric"><div class="metric-label">Movimiento interno</div><div class="metric-value neutral">${fmt(interno)}</div></div>
     <div class="metric"><div class="metric-label">Sin clasificar</div><div class="metric-value neutral">${sinClasificar}</div></div>
+    <div class="metric">
+      <div class="metric-label">Tasa de ahorro (flujo) ${tip('<strong>Qué mide:</strong> cuánto de lo que ganas te queda libre al final del mes. <strong>Fórmula:</strong><code>(Ingresos − Egresos) / Ingresos × 100</code><strong>Referencia:</strong> <10% bajo, 10-20% normal, >20% bueno, >30% excelente. No incluye patrimonio (pie, ahorros forzados).')}</div>
+      <div class="metric-value ${clsFlujo}">${tasaFlujo.toFixed(1)}%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Tasa de patrimonio ${tip('<strong>Qué mide:</strong> cuánto de lo que ganas se convierte en patrimonio (incluye ahorros e inversiones que registraste como Movimiento interno). <strong>Fórmula:</strong><code>(Neto + Salidas a ahorro/inversión) / Ingresos × 100</code><strong>Referencia:</strong> <15% bajo, 15-30% normal, >30% muy bueno. Útil para medir progreso hacia libertad financiera.')}</div>
+      <div class="metric-value ${clsPatri}">${tasaPatrimonio.toFixed(1)}%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Ratio prescindible ${tip('<strong>Qué mide:</strong> qué porcentaje de tus ingresos se va en gastos prescindibles. <strong>Fórmula:</strong><code>Egresos prescindibles / Ingresos × 100</code><strong>Referencia:</strong> <15% sano, 15-25% aceptable, >25% revisar. Es el número que puedes bajar con más facilidad.')}</div>
+      <div class="metric-value ${clsPres}">${ratioPrescindible.toFixed(1)}%</div>
+    </div>
   `
+  
   renderChartMensual(state.movs)
   renderChartCategoria(movs)
   renderChartIngresos(movs)
