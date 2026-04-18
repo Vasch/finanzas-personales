@@ -104,6 +104,63 @@ function parsearDebito(rows) {
 
 function parsearTC(rows) {
   const movs = []
+  let headerIdx = -1
+  let colFecha = -1, colDesc = -1, colMonto = -1
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i].map(c => String(c || '').toUpperCase().trim())
+    const fechaIdx = row.findIndex(c => c === 'FECHA')
+    const descIdx = row.findIndex(c => c === 'DESCRIPCIÓN' || c === 'DESCRIPCION')
+    const montoIdx = row.findIndex(c => c.includes('MONTO'))
+    if (fechaIdx >= 0 && descIdx >= 0 && montoIdx >= 0) {
+      headerIdx = i; colFecha = fechaIdx; colDesc = descIdx; colMonto = montoIdx
+      break
+    }
+  }
+  
+  if (headerIdx === -1) {
+    console.warn('No se detectaron encabezados de TC, usando parser genérico')
+    return parsearTCGenerico(rows)
+  }
+  console.log('TC header en fila:', headerIdx, 'cols:', {colFecha, colDesc, colMonto})
+  
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i]
+    if (!row || row.length === 0) continue
+    const fechaRaw = String(row[colFecha] || '').trim()
+    if (!/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(fechaRaw)) continue
+    
+    // Descripción: puede estar en una sola columna o concatenada en varias
+    let desc = String(row[colDesc] || '').trim()
+    // Si la celda de descripción está vacía o es muy corta, intentar concatenar celdas vecinas
+    if (desc.length < 5) {
+      const candidato = []
+      for (let k = colDesc; k < colMonto; k++) {
+        const s = String(row[k] || '').trim()
+        if (s && !/^\d/.test(s)) candidato.push(s)
+      }
+      desc = candidato.join(' ').trim()
+    }
+    if (!desc) continue
+    
+    // Monto: buscar desde colMonto hacia la derecha el primer número válido
+    let monto = 0
+    for (let k = colMonto; k < row.length; k++) {
+      const n = parseFloat(String(row[k] || '').replace(/[^\d.-]/g,''))
+      if (!isNaN(n) && Math.abs(n) >= 100 && Math.abs(n) < 100000000) { monto = n; break }
+    }
+    if (monto === 0) continue
+    
+    const fecha = parseFechaChile(fechaRaw)
+    if (!fecha) continue
+    if (monto < 0) movs.push({ fecha, descripcion: desc, cargo: 0, abono: Math.abs(monto), fuente: 'TC' })
+    else movs.push({ fecha, descripcion: desc, cargo: monto, abono: 0, fuente: 'TC' })
+  }
+  return movs
+}
+
+function parsearTCGenerico(rows) {
+  const movs = []
   for (const row of rows) {
     if (!row || row.length < 5) continue
     let fechaRaw = null, desc = null, monto = 0
