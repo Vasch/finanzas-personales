@@ -403,16 +403,48 @@ window.guardarMov = async (id) => {
 
   if (addDic && codigo) {
     await sb.from('diccionario').upsert({ codigo, significado: codigo, categoria: cat, tipo }, { onConflict: 'codigo' })
-    
-    const aplicar = confirm(`Se guardó en el diccionario.\n\n¿Aplicar esta clasificación a TODOS los movimientos que contengan "${codigo}"?\n\nAceptar = Sí, sobrescribir todos (incluso los ya clasificados)\nCancelar = Solo aplicar a los "Sin clasificar"`)
-    
-    if (aplicar) {
-      await sb.from('movimientos').update({ categoria: cat, tipo }).ilike('descripcion', `%${codigo}%`)
-    } else {
-      await sb.from('movimientos').update({ categoria: cat, tipo }).ilike('descripcion', `%${codigo}%`).eq('categoria', 'Sin clasificar')
-    }
+    closeModal()
+    mostrarModalAplicar(codigo, cat, tipo)
+  } else {
+    closeModal()
+    await cargarDatos()
+    renderMovs()
   }
+}
 
+function mostrarModalAplicar(codigo, cat, tipo) {
+  showModal(`
+    <h3>¿Cómo aplicar esta clasificación?</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:1rem">
+      Se guardó <strong>${codigo}</strong> → <strong>${cat}</strong> en el diccionario.
+    </p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">
+      Elige a qué movimientos aplicar:
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn-primary" onclick="aplicarMasivo('solo', '${codigo.replace(/'/g,"\\'")}', '${cat.replace(/'/g,"\\'")}', '${tipo}')">
+        Solo este movimiento
+      </button>
+      <button class="btn-primary" onclick="aplicarMasivo('sin_clasificar', '${codigo.replace(/'/g,"\\'")}', '${cat.replace(/'/g,"\\'")}', '${tipo}')">
+        Solo los "Sin clasificar" con descripción similar
+      </button>
+      <button class="btn-primary" onclick="aplicarMasivo('todos', '${codigo.replace(/'/g,"\\'")}', '${cat.replace(/'/g,"\\'")}', '${tipo}')">
+        Todos los que contengan "${codigo}" (sobrescribir)
+      </button>
+    </div>
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn-small" onclick="closeModal(); cargarDatos().then(renderMovs)">Cerrar</button>
+    </div>
+  `)
+}
+
+window.aplicarMasivo = async (modo, codigo, cat, tipo) => {
+  if (modo === 'sin_clasificar') {
+    await sb.from('movimientos').update({ categoria: cat, tipo }).ilike('descripcion', `%${codigo}%`).eq('categoria', 'Sin clasificar')
+  } else if (modo === 'todos') {
+    await sb.from('movimientos').update({ categoria: cat, tipo }).ilike('descripcion', `%${codigo}%`)
+  }
+  // Si es 'solo', no hace nada porque el movimiento ya se actualizó antes
   closeModal()
   await cargarDatos()
   renderMovs()
