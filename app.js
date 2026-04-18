@@ -804,8 +804,8 @@ function renderTopMovs(movs) {
     }).join('')
   }
 
-  document.getElementById('top-egresos').innerHTML = renderTop(egresos, 'cargo')
-  document.getElementById('top-ingresos').innerHTML = renderTop(ingresos, 'total')
+  document.getElementById('top-egresos').innerHTML = '<div class="top-lista">' + renderTop(egresos, 'cargo') + '</div>'
+  document.getElementById('top-ingresos').innerHTML = '<div class="top-lista">' + renderTop(ingresos, 'total') + '</div>'
 }
 
 cargarDatos().then(renderInicio)
