@@ -313,17 +313,57 @@ function renderChartCategoria(movs) {
       byCat[m.categoria] = (byCat[m.categoria] || 0) + m.cargo
     }
   })
-  const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1]).slice(0, 15)
+  const sorted = Object.entries(byCat).sort((a,b) => b[1] - a[1])
   const colors = ['#a78bfa','#7dd3fc','#fbbf60','#f87171','#6ee7a8','#f0997b','#d4537e','#5dcaa5','#97c459','#ef9f27','#AFA9EC','#85B7EB','#F5C4B3','#B5D4F4','#C0DD97']
+  
+  // Ajustar altura del contenedor según cantidad de categorías (28px por barra, mínimo 280px)
+  const altura = Math.max(280, sorted.length * 36 + 40)
+  document.getElementById('chart-cat').parentElement.style.height = altura + 'px'
+  
   if (state.charts.cat) state.charts.cat.destroy()
   state.charts.cat = new Chart(document.getElementById('chart-cat'), {
     type: 'bar',
-    data: { labels: sorted.map(e => e[0]), datasets: [{ label: 'Gasto', data: sorted.map(e => e[1]), backgroundColor: colors }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.raw) } } },
+    data: {
+      labels: sorted.map(e => e[0]),
+      datasets: [{ 
+        label: 'Gasto', 
+        data: sorted.map(e => e[1]), 
+        backgroundColor: colors,
+        datalabels: { 
+          anchor: 'end', 
+          align: 'end', 
+          color: '#e8e4f0',
+          font: { size: 11, weight: '500' },
+          formatter: v => v >= 1000000 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1000 ? '$'+(v/1000).toFixed(0)+'K' : '$'+v
+        }
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 60 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmt(ctx.raw) } }
+      },
       scales: {
-        x: { ticks: { color: '#a69fbf', callback: v => v >= 1000000 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1000 ? '$'+(v/1000).toFixed(0)+'K' : '$'+v }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: { ticks: { color: '#a69fbf', font: { size: 11 } }, grid: { display: false } }
+        x: { 
+          ticks: { color: '#a69fbf', callback: v => v >= 1000000 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1000 ? '$'+(v/1000).toFixed(0)+'K' : '$'+v }, 
+          grid: { color: 'rgba(255,255,255,0.05)' } 
+        },
+        y: { 
+          ticks: { 
+            color: '#a69fbf', 
+            font: { size: 11 },
+            autoSkip: false,
+            callback: function(val) {
+              const label = this.getLabelForValue(val)
+              return label.length > 22 ? label.substring(0, 20) + '...' : label
+            }
+          }, 
+          grid: { display: false } 
+        }
       }
     }
   })
